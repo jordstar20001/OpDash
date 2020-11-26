@@ -175,8 +175,10 @@ class EZSServer():
 
         self.msg_size = msg_size
 
-        self.address = (socket.gethostname(), "localhost")[local]
-
+        #self.address = (socket.gethostname(), "localhost")[local]
+        
+        self.address = ("0.0.0.0", "localhost")[local]
+        
         self.port = port
 
         self.TCPSOCKET.bind((self.address, self.port))

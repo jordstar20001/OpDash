@@ -1,12 +1,15 @@
 from opdash import OpDashManager as mgr
 
-def function(number: int, name: str):
+m = mgr()
+
+def func(number: int, name: str):
     print(f"Name: {name} and number: {number}")
+    return "That worked!"
 
-m = mgr("localhost", 8080)
+m.subscribe(func, "This is a title.")
 
-m.subscribe(function, "Function", "A very epic method.")
-
-print(m.subscribed_callables)
-
-m.persist()
+m.start("localhost", 8080)
+while True:
+    command = input(">>> ").lower().strip()
+    if command in "exit quit close bye".split():
+        m.stop()

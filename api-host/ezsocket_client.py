@@ -42,7 +42,6 @@ class EZSClient():
                 try:
                     data = data.decode()
                     event, content = get_event_and_content(data)
-                    
                     self.__handle_event(event, content)
 
                 except Exception as e:
@@ -91,7 +90,7 @@ class EZSClient():
         """
         Handle the event with the data given.
         """
-        if event in event_registry:
+        if event in self.event_registry:
             self.event_registry[event](data)
 
     def send(self, key: str, data: Dict = None):

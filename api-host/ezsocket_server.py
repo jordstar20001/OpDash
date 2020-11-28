@@ -164,7 +164,7 @@ class EZSServer():
                 if client.connected:
                     self.disconnect_client(client.id)
 
-    def listen(self, port: int, local: bool = False, msg_size = 1024, recv_timeout = 1, max_connections = 50) -> None:
+    def listen(self, port: int, local: bool = False, listen_daemon = False, msg_size = 1024, recv_timeout = 1, max_connections = 50) -> None:
         """
         Begin listening for new connections.
         Setup is done in this function - the socket is created, bound and started.
@@ -174,8 +174,6 @@ class EZSServer():
         self.TCPSOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # IPV4, TCP
 
         self.msg_size = msg_size
-
-        #self.address = (socket.gethostname(), "localhost")[local]
         
         self.address = ("0.0.0.0", "localhost")[local]
         
@@ -186,12 +184,15 @@ class EZSServer():
         self.TCPSOCKET.listen(max_connections)
 
         self.__threads = {
-            "listening": threading.Thread(target=self.__T_get_incoming, daemon=True)
+            "listening": threading.Thread(target=self.__T_get_incoming, daemon=listen_daemon)
         }
         
         for t in self.__threads:
             self.__threads[t].start()
 
+    def stop(self):
+        self.listening = False
+    
     def broadcast(self, event: str, data: Dict) -> None:
         """
         Sends the specified message to all connected clients.

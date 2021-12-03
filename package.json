@@ -1,0 +1,27 @@
+{
+  "name": "opdash",
+  "version": "1.0.0",
+  "description": "Operations Dashboard",
+  "main": "index.js",
+  "dependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^8.2.2",
+    "babel-preset-env": "^1.7.0",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jordstar20001/OpDash.git"
+  },
+  "author": "Jordan Zdimirovic",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jordstar20001/OpDash/issues"
+  },
+  "homepage": "https://github.com/jordstar20001/OpDash#readme"
+}

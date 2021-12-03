@@ -1,0 +1,28 @@
+{
+    "ID": "659c51c257883ccf",
+    "info": {
+        "subscribed": [
+            {
+                "args": [
+                    [
+                        "number",
+                        "int"
+                    ],
+                    [
+                        "name",
+                        "str"
+                    ]
+                ],
+                "description": "",
+                "title": "This is a title.",
+                "token": "28b62ee222ff7122173aec71e311aa"
+            }
+        ],
+        "sys_info": {
+            "ip": "127.0.0.1",
+            "name": "JORDANPC",
+            "os": "Windows 10 v10.0.18362",
+            "time": "1:15:51 - 7/2/2021"
+        }
+    }
+}

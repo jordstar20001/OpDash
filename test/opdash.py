@@ -10,7 +10,6 @@ import inspect, binascii, os
 from datetime import datetime as dt
 import platform as pltfm
 from inspect import signature as sig
-from hashlib import sha256
 
 import time
 
@@ -49,34 +48,14 @@ class OpDashManager():
     """
     Manages subscribed functions etc
     """
-    @staticmethod
     def create_callable_info(c, title, description, arg_types: list = None):
         params = list(sig(c).parameters.values())
+        
         if arg_types == None and all(p.annotation != inspect._empty for p in params):
             arg_types = [p.annotation for p in params]
         elif len(arg_types) != len(params):
             raise ValueError("Could not deduce types for parameters.")
-        # Calculate function signature, ignoring blank lines and comments
-        incl = []
-        lines = inspect.getsource(c).split("\n")
-        i = 1
-        ml_comment = False
-        while i < len(lines):
-            l= lines[i]
-            lstrip = l.strip()
-            if lstrip == '"""':
-                ml_comment = not ml_comment
-
-            elif not ml_comment and "#" not in l and lstrip != "":
-                incl.append(lines[i])
             
-            i += 1
-        
-        callable_code_binary = "\n".join(incl).encode()
-
-        # Code signature is a product of the code and the (sorted) parameters
-        code_signature = sha256(callable_code_binary + "".join([str(p) for p in params]).encode()).hexdigest()
-
         params_str = []
         for i, t in enumerate(arg_types):
             if t not in type_to_str:
@@ -89,8 +68,7 @@ class OpDashManager():
             "token": random_hex(30),
             "title": title,
             "description": description,
-            "args": args,
-            "signature": code_signature
+            "args": args
         }
 
     def get_system_info():

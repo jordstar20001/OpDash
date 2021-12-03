@@ -4,10 +4,7 @@ m = mgr()
 
 def func(number: int, name: str):
     print(f"Name: {name} and number: {number}")
-    return {
-        "info": [1,2,3,4,5],
-        "more_stuff": "hello!"
-    }
+    return "That worked!"
 
 m.subscribe(func, "This is a title.")
 

@@ -46,7 +46,6 @@ class EZSConnectedClient():
         self.server = server
         self.connected = True
         self.connect_time = int(timeit.default_timer())
-        
 
     def send(self, key: str, data: Dict = None):
         """
@@ -94,17 +93,14 @@ class EZSServer():
         Is started by the listen() method.
         """
         while self.listening:
-            try:
-                sock, addr = self.TCPSOCKET.accept()
-                token = random_hex(16)
-                if DEBUG: print(f"Socket '{token}' at {addr[0]} connected.")
-                client = EZSConnectedClient(self, token, sock, addr)
-                self.__connected_clients[token] = client
-                self.__call_event(client, "connect", None)
-                self.__threads[token] = threading.Thread(target=self.__T_client, args=(client,))
-                self.__threads[token].start()
-            except socket.timeout:
-                continue
+            sock, addr = self.TCPSOCKET.accept()
+            token = random_hex(16)
+            if DEBUG: print(f"Socket '{token}' at {addr[0]} connected.")
+            client = EZSConnectedClient(self, token, sock, addr)
+            self.__connected_clients[token] = client
+            self.__call_event(client, "connect", None)
+            self.__threads[token] = threading.Thread(target=self.__T_client, args=(client,))
+            self.__threads[token].start()
     
     def on(self, event: str, callback: Callable):
         """
@@ -176,7 +172,7 @@ class EZSServer():
         self.listening = True
 
         self.TCPSOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # IPV4, TCP
-        self.TCPSOCKET.settimeout(1)
+
         self.msg_size = msg_size
         
         self.address = ("0.0.0.0", "localhost")[local]

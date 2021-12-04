@@ -4,6 +4,10 @@ OpDash API
 Allows for the subscription of functions to be exposed to the web.
 """
 
+# CONSTANTS
+REQUIRE_CREDENTIALS = True
+NON_AUTH_ENDPOINTS = ["/login"]
+
 from flask import Flask, jsonify, make_response, request
 
 import os
@@ -14,9 +18,9 @@ from datetime import datetime as dt
 
 from threading import Thread
 
-from hashlib import sha256
-
 from json import dumps, loads
+
+from auth_manager import AuthManager
 
 str_to_type = {
     "str": str,
@@ -44,42 +48,9 @@ class OpDashServer():
 
         self.functions_by_signature = {}
 
-        self.f_info = {
-            "secrets": "secrets",
-            "creds": "creds.json",
-            "salt": "salt.key"
-        }
+        self.auth = AuthManager()
 
-        self.ensure_creds()
-
-    def load_salt(self):
-        path = os.path.join(self.f_info["secrets"], self.f_info["salt"])
-        if os.path.exists(path):
-            return open(path, "rb").read()
-        else:
-            new_salt = random_hex(16).encode()
-            open(path, "x")
-            with open(path, "wb") as f: f.write(new_salt)
-            return new_salt
-
-    def ensure_creds(self):
-        path = os.path.join(self.f_info["secrets"], os.path.join(self.f_info["creds"]))
-        if not os.path.exists(path):
-            open(path, "x")
-            open(path, "w").write("{}")
-
-    def login_with_creds(self, username, password):
-        path = os.path.join(self.f_info["secrets"], self.f_info["creds"])
-        password_hash = self.hash_password(password)
-        current_users = loads(open(path, "r").read())
-        if not current_users[username]:
-            return False, "Username not found"
-        else:
-            if current_users[username] == password_hash:
-                return True, "Success"
-            else:
-                return False, "Incorrect password"
-
+    
 
     def valid_client_ID(self, cID):
         return cID in self.connections
@@ -149,27 +120,7 @@ class OpDashServer():
         
         return funcs
 
-    def hash_password(self, password):
-        salt = self.load_salt()
-        return sha256(password.encode() + salt).hexdigest()
-
-    def create_user(self, username, password):
-        path = os.path.join(self.f_info["secrets"], self.f_info["creds"])
-        try:
-            password_hash = self.hash_password(password)
-            current_users = loads(open(path, "r").read())
-        except Exception as e:
-            return False, f"Failed to load data: {e}"
-        if username in current_users:
-            return False, "User already exists"
-
-        else:
-            current_users[username] = password_hash
-            new_file_contents = dumps(current_users)
-            with open(path, "w") as f:
-                 f.write(new_file_contents)
-            return True, "Success"
-
+    
     def start(self, port):
         self.socket_server = EZSServer()
         self.socket_server.listen(port)
@@ -239,6 +190,34 @@ class OpDashServer():
     def expose(self, port, blocking = False):
         app = Flask(__name__)
 
+        def is_authed(request) -> bool:
+            """
+            Returns whether the user, given their request, is authed or not
+            """
+            if not REQUIRE_CREDENTIALS: return True
+
+            authtoken = request.headers.get("authtoken")
+            
+            return self.auth.validate(authtoken) if authtoken else False
+        
+        @app.before_request
+        def before_req():
+            path = request.path
+            if path in NON_AUTH_ENDPOINTS: return None
+            else:
+                authed = is_authed(request)
+                if not authed: return f"Auth is required for endpoint: '{path}'.\nIf an authtoken header was provided, it was invalid.", 403
+            
+
+        @app.route("/login", methods = ['POST'])
+        def login():
+            u,p = request.json["username"], request.json["password"]
+            token = self.auth.login(u, p)
+            if token:
+                return token, 200 
+            else:
+                return "Incorrect login", 403
+
         @app.route("/status", methods=['GET'])
         def status():
             # get all of the connected clients
@@ -250,7 +229,7 @@ class OpDashServer():
             for c in conns:
                 if c["ID"] == id_search:
                     return jsonify(c)
-            return 404, "Not found."
+            return "Not found.", 404 
 
         @app.route("/run/<f_ID>", methods=["POST"])
         def run_function(f_ID):
@@ -259,13 +238,13 @@ class OpDashServer():
                 func_dict = self.get_function_by_token(f_ID)
 
             except:
-                return 404, "Not found."
+                return "Not found.", 404 
 
             # Validate arguments
             args = request.json
             for a in func_dict["args"]:
                 if not (a[0] in args and str_to_type[a[1]] == type(args[a[0]])):
-                    return 400
+                    return "", 400
 
             arg_lst = [args[k] for k in args]
             trans_token = self.call_function(func_dict, arg_lst)

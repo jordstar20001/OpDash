@@ -30,16 +30,6 @@ type_to_str = {
     bool: 'bool'
 }
 
-class ExecReturn():
-    def get(self):
-        return self.obj
-
-    def set(self, v):
-        self.obj = v
-
-    def __str__(self):
-        return str(self.obj)
-
 #region Helper Functions
 def random_hex(length: int):
     return binascii.b2a_hex(os.urandom(length // 2)).decode()
@@ -183,8 +173,6 @@ class OpDashManager():
         args = [args[k] for k in args]
         
         func = self.subscribed_callables["subscribed"][token][0]
-
-        return_obj = ExecReturn()
 
         func_thread = thd.Thread(target=self.__T_function_exec, daemon=True, args=(func, args, transactionID))
 

@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
+import { FormControl } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
@@ -7,6 +9,8 @@ import { Component, OnInit } from '@angular/core';
 })
 export class LoginComponent implements OnInit {
 
+  usernameFormControl = new FormControl("");
+  passwordFormControl = new FormControl("");
   constructor() { }
 
   ngOnInit(): void {
